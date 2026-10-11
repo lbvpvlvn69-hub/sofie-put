@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Go Getter 3 — Sophie | Personality Quest</title>
+<style>
+:root{
+  --bg:#100b18;--panel:#191126;--panel2:#241735;--text:#f8f5ff;--muted:#b8aac8;
+  --line:#3e2a53;--accent:#9b7cff;--accent2:#48d9c8;--good:#58dc95;--bad:#ff7381
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+background:radial-gradient(circle at 15% 0%,rgba(155,124,255,.2),transparent 28%),
+radial-gradient(circle at 90% 12%,rgba(72,217,200,.1),transparent 25%),var(--bg);min-height:100vh}
+button,input{font:inherit}button{touch-action:manipulation}
+.app{max-width:1100px;margin:0 auto;padding:22px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.brand{display:flex;gap:12px;align-items:center}.logo{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;
+font-weight:1000;font-size:22px;background:linear-gradient(135deg,var(--accent),#6e4ce6)}
+h1{margin:0;font-size:clamp(23px,4vw,36px)}.sub{color:var(--muted);font-size:14px;margin-top:3px}
+.hud{display:flex;gap:9px;flex-wrap:wrap}.pill{padding:9px 13px;border-radius:999px;background:rgba(255,255,255,.055);
+border:1px solid var(--line);font-weight:800;font-size:14px}
+.progress{height:10px;background:#251832;border:1px solid #382447;border-radius:999px;overflow:hidden;margin:0 0 20px}
+.progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:.3s}
+.panel{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.014));border:1px solid var(--line);
+border-radius:24px;padding:clamp(18px,3vw,30px);box-shadow:0 18px 60px rgba(0,0,0,.2)}
+.stagehead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.kicker{color:var(--accent2);text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:1000}
+h2{font-size:clamp(25px,4vw,38px);margin:4px 0}.desc{color:var(--muted);line-height:1.45;margin:0}
+.primary,.secondary,.choice,.flash,.mini,.token{border:0;color:var(--text);cursor:pointer}
+.primary,.secondary{min-height:46px;border-radius:14px;padding:11px 17px;font-weight:950}
+.primary{background:linear-gradient(135deg,var(--accent),#7857ef)}.secondary{background:#2a1b3b;border:1px solid #4a3262}
+.flashgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.flash{background:var(--panel2);border:1px solid var(--line);border-radius:18px;padding:15px;text-align:left;min-height:150px;
+display:flex;flex-direction:column;justify-content:space-between;transition:.17s}
+.flash:hover,.choice:hover,.mini:hover,.primary:hover,.secondary:hover{transform:translateY(-1px)}
+.icon{font-size:32px}.word{font-size:20px;font-weight:1000;margin-top:7px;overflow-wrap:anywhere}
+.hint{color:var(--muted);font-size:13px;line-height:1.42;margin-top:6px}.ru{display:none;color:#8cebdd;font-size:13px;font-weight:850;margin-top:7px}
+.flash.open .ru{display:block}.tap{font-size:11px;color:#7f7090;margin-top:8px}
+.qcard{background:#140d20;border:1px solid #352246;border-radius:20px;padding:22px;margin-bottom:16px}
+.scenario{font-size:clamp(20px,3vw,28px);line-height:1.4;font-weight:850;margin:0}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.choice{min-height:58px;border-radius:15px;background:#261735;border:1px solid #49305e;padding:15px 16px;font-weight:900;font-size:17px;text-align:left}
+.choice.good{background:rgba(88,220,149,.15);border-color:var(--good)}.choice.bad{background:rgba(255,115,129,.13);border-color:var(--bad)}
+.choice:disabled{cursor:default;transform:none}.feedback{min-height:34px;margin-top:13px;font-weight:850;color:var(--muted)}
+.feedback.good{color:#8af0b4}.feedback.bad{color:#ff9da7}
+.matchgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.mini{min-height:54px;border-radius:14px;padding:12px;background:#261837;border:1px solid #4b3262;font-weight:900}
+.mini.selected{outline:3px solid rgba(155,124,255,.38);border-color:var(--accent)}
+.mini.matched{background:rgba(88,220,149,.14);border-color:var(--good);color:#d8ffe8}
+.sentence{min-height:70px;border:2px dashed #4a3462;border-radius:17px;padding:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#140e1e}
+.builder{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.token{border-radius:12px;background:#302043;border:1px solid #50376a;padding:10px 13px;font-weight:850}
+.token.used{opacity:.32;pointer-events:none}.slot{border-radius:10px;background:#412b59;padding:8px 11px;font-weight:900}
+.inputrow{display:flex;gap:10px;flex-wrap:wrap}.textin{flex:1;min-width:210px;border-radius:14px;border:1px solid #4c3563;background:#140f1d;color:white;
+padding:13px 14px;font-size:16px;outline:none}.textin:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(155,124,255,.15)}
+.finish{text-align:center;padding:6px}.trophy{font-size:62px}.big{font-size:48px;font-weight:1000;margin:4px 0 8px}.hidden{display:none!important}
+.footer{color:#756684;text-align:center;font-size:12px;margin-top:14px}
+@media(max-width:780px){.flashgrid,.matchgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.choices{grid-template-columns:1fr}}
+@media(max-width:430px){.app{padding:14px}.flash{min-height:140px;padding:12px}.word{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand"><div class="logo">G3</div><div><h1>Personality Quest</h1><div class="sub">Go Getter 3 • Sophie • vocabulary game</div></div></div>
+    <div class="hud"><div class="pill">⭐ Score: <span id="score">0</span></div><div class="pill">🔥 Streak: <span id="streak">0</span></div></div>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+
+  <section class="panel" id="s1">
+    <div class="stagehead"><div><div class="kicker">Round 1 • Learn</div><h2>Meet the words</h2>
+      <p class="desc">Click a card for a Russian hint. Say the word or phrase aloud.</p></div>
+      <button class="primary" id="go2">I’m ready →</button></div>
+    <div class="flashgrid" id="flash"></div>
+  </section>
+
+  <section class="panel hidden" id="s2">
+    <div class="stagehead"><div><div class="kicker">Round 2 • Context</div><h2>Choose the best word</h2>
+      <p class="desc">Read the situation and choose the word or phrase that fits.</p></div>
+      <div class="pill"><span id="qnum">1</span>/<span id="qtotal">12</span></div></div>
+    <div class="qcard"><p class="scenario" id="scenario"></p></div>
+    <div class="choices" id="choices"></div><div class="feedback" id="fb"></div>
+    <button class="primary hidden" id="next">Next →</button>
+  </section>
+
+  <section class="panel hidden" id="s3">
+    <div class="stagehead"><div><div class="kicker">Round 3 • Match</div><h2>Match the meaning</h2>
+      <p class="desc">Find the English word and its meaning.</p></div><div class="pill">Pairs: <span id="pairs">0</span>/6</div></div>
+    <div class="matchgrid" id="match"></div><div class="feedback" id="mfb"></div>
+    <button class="primary hidden" id="go4">Final round →</button>
+  </section>
+
+  <section class="panel hidden" id="s4">
+    <div class="stagehead"><div><div class="kicker">Round 4 • Use it</div><h2>Build the sentence</h2>
+      <p class="desc">Tap the words in the correct order.</p></div><div class="pill"><span id="buildNum">1</span>/3</div></div>
+    <div class="qcard"><p class="scenario" id="target"></p></div>
+    <div class="sentence" id="sentence"></div><div class="builder" id="builder"></div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="secondary" id="resetBuild">Reset</button><button class="primary" id="checkBuild">Check</button></div>
+    <div class="feedback" id="bfb"></div>
+  </section>
+
+  <section class="panel hidden" id="s5">
+    <div class="stagehead"><div><div class="kicker">Bonus • Spelling</div><h2>Type the missing word</h2><p class="desc">One last quick challenge.</p></div>
+      <div class="pill"><span id="spellNum">1</span>/4</div></div>
+    <div class="qcard"><p class="scenario" id="spellQ"></p></div>
+    <form id="spellForm"><div class="inputrow"><input id="spellInput" class="textin" autocomplete="off" placeholder="Type your answer…">
+      <button class="primary" type="submit">Check</button></div></form>
+    <div class="feedback" id="sfb"></div><button class="primary hidden" id="spellNext">Next →</button>
+  </section>
+
+  <section class="panel hidden" id="finish">
+    <div class="finish"><div class="trophy">🏆</div><div class="kicker">Finished!</div><h2>Great job, Sophie!</h2>
+      <div class="big"><span id="finalScore">0</span> pts</div><p class="desc" id="finalText" style="max-width:620px;margin:0 auto 20px"></p>
+      <button class="primary" id="restart">Play again ↻</button></div>
+  </section>
+
+  <div class="footer">bossy • easy-going • loud • messy • organised • patient • quiet • tidy • get upset easily • argue • shout • neighbours</div>
+</div>
+
+<script>
+(() => {
+const vocab=[
+{w:"bossy",i:"👑",h:"likes telling people what to do",ru:"властный; любит командовать"},
+{w:"easy-going",i:"😎",h:"relaxed and not easily annoyed",ru:"спокойный, лёгкий в общении"},
+{w:"loud",i:"📢",h:"makes a lot of noise",ru:"громкий"},
+{w:"messy",i:"🌪️",h:"not neat; things are everywhere",ru:"неаккуратный"},
+{w:"organised",i:"📅",h:"plans things well",ru:"организованный"},
+{w:"patient",i:"🧘",h:"can wait calmly",ru:"терпеливый"},
+{w:"quiet",i:"🤫",h:"does not make much noise",ru:"тихий"},
+{w:"tidy",i:"✨",h:"keeps things neat",ru:"аккуратный"},
+{w:"get upset easily",i:"😣",h:"become sad or angry very quickly",ru:"легко расстраиваться / злиться"},
+{w:"argue",i:"💢",h:"disagree angrily with someone",ru:"спорить, ругаться"},
+{w:"shout",i:"🗯️",h:"speak very loudly",ru:"кричать"},
+{w:"neighbours",i:"🏘️",h:"people who live near you",ru:"соседи"}
+];
+
+const questions=[
+{s:"Ben always says, “Do this! Sit here! Give me that!” He likes telling everyone what to do.",a:"bossy",o:["bossy","patient","quiet","tidy"]},
+{s:"Mia never gets angry when plans change. She smiles and says, “No problem!”",a:"easy-going",o:["messy","easy-going","bossy","loud"]},
+{s:"Leo talks so loudly that everyone in the next room can hear him.",a:"loud",o:["quiet","organised","loud","patient"]},
+{s:"Anna’s clothes, books and snacks are all over her bedroom floor.",a:"messy",o:["tidy","messy","patient","easy-going"]},
+{s:"Sophie writes everything in her planner and always knows what homework she has.",a:"organised",o:["organised","loud","messy","bossy"]},
+{s:"Tom can wait for a long time without getting angry or bored.",a:"patient",o:["bossy","patient","loud","messy"]},
+{s:"Eva doesn’t talk much in class and she never makes much noise.",a:"quiet",o:["loud","easy-going","quiet","bossy"]},
+{s:"Max always puts his clothes in the wardrobe and keeps his desk clean.",a:"tidy",o:["messy","organised","tidy","loud"]},
+{s:"Lucy gets angry or sad about very small problems.",a:"get upset easily",o:["get upset easily","shout","argue","easy-going"]},
+{s:"Jack and his sister disagree about everything and often fight with words.",a:"argue",o:["shout","argue","tidy","patient"]},
+{s:"Dad is downstairs, so Ben speaks very loudly: “DINNER IS READY!”",a:"shout",o:["argue","shout","quiet","organised"]},
+{s:"The people who live next door are very friendly.",a:"neighbours",o:["neighbours","parents","classmates","teachers"]}
+];
+
+const matchPairs=[
+["bossy","likes telling people what to do"],["patient","can wait calmly"],["messy","not neat"],
+["get upset easily","become sad or angry quickly"],["argue","disagree angrily"],["neighbours","people who live near you"]
+];
+
+const builds=["My friend is easy-going and patient.","Our neighbours sometimes argue and shout.","I get upset easily when people are bossy."];
+
+const spelling=[
+{q:"The people who live next door are our ________.",a:"neighbours"},
+{q:"Please don’t ________. I can hear you!",a:"shout"},
+{q:"My brother and I sometimes ________ about the computer.",a:"argue"},
+{q:"She can become sad very quickly. She can ________.",a:"get upset easily"}
+];
+
+let score=0,streak=0,q=0,answered=false,selected=null,matched=0,buildIdx=0,spellIdx=0,spellLocked=false,chosen=[];
+const $=id=>document.getElementById(id), stages=["s1","s2","s3","s4","s5","finish"];
+const hud=()=>{$("score").textContent=score;$("streak").textContent=streak};
+function stage(id,p){stages.forEach(x=>$(x).classList.add("hidden"));$(id).classList.remove("hidden");$("bar").style.width=p+"%";window.scrollTo({top:0,behavior:"smooth"})}
+
+vocab.forEach(v=>{
+ const b=document.createElement("button");b.type="button";b.className="flash";
+ b.innerHTML=`<div><div class="icon">${v.i}</div><div class="word">${v.w}</div><div class="hint">${v.h}</div><div class="ru">${v.ru}</div></div><div class="tap">tap for Russian hint</div>`;
+ b.addEventListener("click",()=>b.classList.toggle("open"));$("flash").appendChild(b)
+});
+
+$("go2").addEventListener("click",()=>{stage("s2",20);renderQ()});$("qtotal").textContent=questions.length;
+
+function renderQ(){
+ answered=false;$("next").classList.add("hidden");$("fb").textContent="";$("fb").className="feedback";
+ const x=questions[q];$("qnum").textContent=q+1;$("scenario").textContent=x.s;$("choices").innerHTML="";
+ x.o.forEach(opt=>{const b=document.createElement("button");b.type="button";b.className="choice";b.textContent=opt;
+ b.addEventListener("click",()=>answer(b,opt));$("choices").appendChild(b)})
+}
+function answer(btn,opt){
+ if(answered)return;answered=true;const x=questions[q];
+ [...$("choices").children].forEach(b=>{b.disabled=true;if(b.textContent===x.a)b.classList.add("good")});
+ if(opt===x.a){score+=10+Math.min(streak*2,10);streak++;btn.classList.add("good");$("fb").textContent="✅ Correct!";$("fb").className="feedback good"}
+ else{streak=0;btn.classList.add("bad");$("fb").textContent=`❌ The best answer is “${x.a}”.`;$("fb").className="feedback bad"}
+ hud();$("next").classList.remove("hidden")
+}
+$("next").addEventListener("click",()=>{q++;if(q<questions.length)renderQ();else{stage("s3",50);setupMatch()}});
+
+function setupMatch(){
+ matched=0;selected=null;$("pairs").textContent="0";$("mfb").textContent="";$("go4").classList.add("hidden");$("match").innerHTML="";
+ let items=[];matchPairs.forEach(([a,b],idx)=>items.push({t:a,p:idx},{t:b,p:idx}));
+ for(let i=items.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[items[i],items[j]]=[items[j],items[i]]}
+ items.forEach(item=>{const b=document.createElement("button");b.type="button";b.className="mini";b.textContent=item.t;b.dataset.p=item.p;b.addEventListener("click",()=>pick(b));$("match").appendChild(b)})
+}
+function pick(btn){
+ if(btn.classList.contains("matched"))return;
+ if(!selected){selected=btn;btn.classList.add("selected");return}
+ if(selected===btn){selected.classList.remove("selected");selected=null;return}
+ if(selected.dataset.p===btn.dataset.p){
+  selected.classList.remove("selected");selected.classList.add("matched");btn.classList.add("matched");matched++;score+=12;streak++;
+  $("pairs").textContent=matched;$("mfb").textContent="✅ Nice match!";$("mfb").className="feedback good";selected=null;hud();
+  if(matched===matchPairs.length)$("go4").classList.remove("hidden")
+ }else{
+  const first=selected;btn.classList.add("selected");streak=0;hud();$("mfb").textContent="Try another pair.";$("mfb").className="feedback bad";
+  setTimeout(()=>{first.classList.remove("selected");btn.classList.remove("selected");selected=null},500)
+ }
+}
+$("go4").addEventListener("click",()=>{stage("s4",72);setupBuild()});
+
+function setupBuild(){
+ chosen=[];$("buildNum").textContent=buildIdx+1;$("bfb").textContent="";$("target").textContent=`Build: “${builds[buildIdx]}”`;$("builder").innerHTML="";renderSentence();
+ let words=builds[buildIdx].replace(/[.]/g,"").split(" ");
+ for(let i=words.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[words[i],words[j]]=[words[j],words[i]]}
+ words.forEach((w,idx)=>{const b=document.createElement("button");b.type="button";b.className="token";b.textContent=w;b.dataset.id=idx;
+ b.addEventListener("click",()=>{if(b.classList.contains("used"))return;chosen.push({w,id:idx});b.classList.add("used");renderSentence()});$("builder").appendChild(b)})
+}
+function renderSentence(){
+ $("sentence").innerHTML="";
+ if(!chosen.length){const s=document.createElement("span");s.style.color="var(--muted)";s.textContent="Your sentence will appear here…";$("sentence").appendChild(s);return}
+ chosen.forEach(x=>{const s=document.createElement("span");s.className="slot";s.textContent=x.w;$("sentence").appendChild(s)})
+}
+$("resetBuild").addEventListener("click",setupBuild);
+$("checkBuild").addEventListener("click",()=>{
+ const made=chosen.map(x=>x.w).join(" ")+".";const target=builds[buildIdx];
+ if(made===target){score+=20;streak++;hud();$("bfb").textContent="✅ Perfect!";$("bfb").className="feedback good";
+ setTimeout(()=>{buildIdx++;if(buildIdx<builds.length)setupBuild();else{stage("s5",88);setupSpell()}},700)}
+ else{streak=0;hud();$("bfb").textContent="Not quite — reset and try again.";$("bfb").className="feedback bad"}
+});
+
+function setupSpell(){
+ spellLocked=false;$("spellNum").textContent=spellIdx+1;$("spellQ").textContent=spelling[spellIdx].q;$("spellInput").value="";
+ $("sfb").textContent="";$("spellNext").classList.add("hidden");$("spellInput").disabled=false;$("spellInput").focus()
+}
+$("spellForm").addEventListener("submit",e=>{
+ e.preventDefault();if(spellLocked)return;const val=$("spellInput").value.trim().toLowerCase();if(!val)return;
+ spellLocked=true;$("spellInput").disabled=true;const ans=spelling[spellIdx].a;
+ if(val===ans){score+=15;streak++;$("sfb").textContent="✅ Correct!";$("sfb").className="feedback good"}
+ else{streak=0;$("sfb").textContent=`❌ Correct answer: ${ans}`;$("sfb").className="feedback bad"}
+ hud();$("spellNext").classList.remove("hidden")
+});
+$("spellNext").addEventListener("click",()=>{spellIdx++;if(spellIdx<spelling.length)setupSpell();else{
+ stage("finish",100);$("finalScore").textContent=score;
+ $("finalText").textContent=score>=230?"Amazing! You really know these words now.":score>=170?"Great work! One more round and these words will feel automatic.":"Good start! Play again and try to beat your score."
+}});
+$("restart").addEventListener("click",()=>location.reload());
+})();
+</script>
+</body>
+</html>
